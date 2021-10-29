@@ -1,0 +1,15 @@
+{
+    "retry": 2,
+    "site": [
+        {
+			"note": "机场1",
+            "url": [
+                "https://fxxx.com",
+                "https://fzzz.net"
+            ],
+            "email": "123@qq.com",
+            "password": "1111",
+            "cookies": ""
+        }
+    ]
+}
