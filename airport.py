@@ -8,94 +8,106 @@ import platform
 
 
 def GetQuery(U, C):
-    url = U + "/user"
-    payload = ''
-    headers = {
-        'Cookie': C,
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
-    }
-    response = requests.request("GET", url, headers=headers, data=payload)
-    if response.status_code != 200:
+    try:
+        url = U + "/user"
+        payload = ''
+        headers = {
+            'Cookie': C,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code != 200:
+            time.sleep(1)
+            GetQuery(U, C)
+        D = response.text.encode('utf8').decode('utf8')
+        # print(D)
+        if D.count("马上注册") > 0 or D.count("还没有账号") > 0 or D.count("登录失败") > 0:
+            return '-1'
+        pat = re.compile('<span class="counter">' + '(.*?)' + '</span>', re.S)
+        result = pat.findall(D)
+        pat1 = re.compile('<li class="breadcrumb-item active" aria-current="page">' + '(.*?)' + '</li>', re.S)
+        result1 = pat1.findall(D)
+        pat2 = re.compile('<span class="counterup">' + '(.*?)' + '</span>', re.S)
+        result2 = pat2.findall(D)
+        pat3 = re.compile(result[1] + '</span>' + '(.*?)' + '</div>', re.S)
+        result3 = pat3.findall(D)
+        pat4 = re.compile('<title>' + '(.*?)' + '</title>', re.S)
+        result4 = pat4.findall(D)
+        # print(result)
+        # print(result1)
+        '''
+        if D.count("明日再来") == 2:
+            feedback = '会员时长:已经签到' + "\r\n"
+        else:
+            feedback = '会员时长:未签到' + "\r\n"
+        '''
+        feedback = "机场：" + str(result4[0]).replace("&mdash;", "").replace("首页", "").replace(" ", "") + "\r\n"
+        feedback = feedback + '会员时长:' + result[0] + "天\r\n"
+        feedback = feedback + str(result1[0]).replace(
+            '<a href="#" onclick="return_c()" class="btn btn-icon icon-left btn-primary">升级套餐</a>', "").replace(" ",
+                                                                                                                "").replace(
+            "\n", "").replace("\r", "") + "\r\n"
+        feedback = feedback + '剩余流量:' + result[1] + str(result3[0]).replace(" ", "").replace("\n", "").replace("\r",
+                                                                                                               "") + "\r\n"
+        feedback = feedback + result1[1] + "\r\n"
+        feedback = feedback + '在线设备数:' + result[2] + "/" + result2[0] + "\r\n"
+        feedback = feedback + result1[2] + "\r\n"
+        feedback = feedback + '钱包余额:' + result[3] + "\r\n"
+        feedback = feedback + result1[3] + "\r\n"
+        return feedback
+    except BaseException as e:
         time.sleep(1)
-        GetQuery(U, C)
-    D = response.text.encode('utf8').decode('utf8')
-    # print(D)
-    if D.count("马上注册") > 0 or D.count("还没有账号") > 0 or D.count("登录失败") > 0:
-        return '-1'
-    pat = re.compile('<span class="counter">' + '(.*?)' + '</span>', re.S)
-    result = pat.findall(D)
-    pat1 = re.compile('<li class="breadcrumb-item active" aria-current="page">' + '(.*?)' + '</li>', re.S)
-    result1 = pat1.findall(D)
-    pat2 = re.compile('<span class="counterup">' + '(.*?)' + '</span>', re.S)
-    result2 = pat2.findall(D)
-    pat3 = re.compile(result[1] + '</span>' + '(.*?)' + '</div>', re.S)
-    result3 = pat3.findall(D)
-    pat4 = re.compile('<title>' + '(.*?)' + '</title>', re.S)
-    result4 = pat4.findall(D)
-    # print(result)
-    # print(result1)
-    '''
-    if D.count("明日再来") == 2:
-        feedback = '会员时长:已经签到' + "\r\n"
-    else:
-        feedback = '会员时长:未签到' + "\r\n"
-    '''
-    feedback = "机场：" + str(result4[0]).replace("&mdash;", "").replace("首页", "").replace(" ", "") + "\r\n"
-    feedback = feedback + '会员时长:' + result[0] + "天\r\n"
-    feedback = feedback + str(result1[0]).replace(
-        '<a href="#" onclick="return_c()" class="btn btn-icon icon-left btn-primary">升级套餐</a>', "").replace(" ",
-                                                                                                            "").replace(
-        "\n", "").replace("\r", "") + "\r\n"
-    feedback = feedback + '剩余流量:' + result[1] + str(result3[0]).replace(" ", "").replace("\n", "").replace("\r",
-                                                                                                           "") + "\r\n"
-    feedback = feedback + result1[1] + "\r\n"
-    feedback = feedback + '在线设备数:' + result[2] + "/" + result2[0] + "\r\n"
-    feedback = feedback + result1[2] + "\r\n"
-    feedback = feedback + '钱包余额:' + result[3] + "\r\n"
-    feedback = feedback + result1[3] + "\r\n"
-    return feedback
+        return GetQuery(U, C)
 
 
 def SignIn(U, C):
-    url = U + "/user/checkin"
-    payload = ''
-    headers = {
-        'Cookie': C,
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    if response.status_code != 200:
+    try:
+        url = U + "/user/checkin"
+        payload = ''
+        headers = {
+            'Cookie': C,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        if response.status_code != 200:
+            time.sleep(1)
+            SignIn(U, C)
+        D = response.text.encode('ascii').decode('unicode_escape')
+        J = json.loads(D)
+        return J['msg']
+    except BaseException as e:
         time.sleep(1)
-        SignIn(U, C)
-    D = response.text.encode('ascii').decode('unicode_escape')
-    J = json.loads(D)
-    return J['msg']
+        return SignIn(U, C)
 
 
 def login(U, A, P):
-    cookies = ''
-    url = U + "/auth/login"
-    payload = f'email={A}&passwd={P}&code='
-    headers = {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    if response.status_code != 200:
+    try:
+        cookies = ''
+        url = U + "/auth/login"
+        payload = f'email={A}&passwd={P}&code='
+        headers = {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36 Edg/95.0.1020.30'
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        if response.status_code != 200:
+            time.sleep(1)
+            login(U, A, P)
+        for cookie in response.cookies:
+            cookies = cookies + cookie.name + "=" + cookie.value + "; "
+        D = response.text.encode('ascii').decode('unicode_escape')
+        # {"ret":1,"msg":"登录成功"}
+        J = json.loads(D)
+        if J["msg"] != "登录成功":
+            return J["msg"]
+        else:
+            return cookies
+        # encode = chardet.detect(D)
+        # print(encode['encoding'], D)
+    except BaseException as e:
         time.sleep(1)
-        login(U, A, P)
-    for cookie in response.cookies:
-        cookies = cookies + cookie.name + "=" + cookie.value + "; "
-    D = response.text.encode('ascii').decode('unicode_escape')
-    # {"ret":1,"msg":"登录成功"}
-    J = json.loads(D)
-    if J["msg"] != "登录成功":
-        return J["msg"]
-    else:
-        return cookies
-    # encode = chardet.detect(D)
-    # print(encode['encoding'], D)
+        return login(U, A, P)
 
 
 def Ping(host):
@@ -146,6 +158,7 @@ def Account():
                 url = vv['url']
                 break
         print("最快的服务器为：" + url)
+        # url = 'https://suying688.com'
         Cookies = v['cookies']
         if Cookies == "":
             #print(v)
